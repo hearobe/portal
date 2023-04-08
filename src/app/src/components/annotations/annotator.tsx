@@ -49,6 +49,7 @@ import FileModal from "./filemodal";
 import AnnotatorSettings from "./utils/annotatorsettings";
 import FormatTimerSeconds from "./utils/timer";
 import { RegisteredModel } from "./model";
+import Chart from "./chart";
 
 type Point = [number, number];
 type MapType = L.DrawMap;
@@ -180,6 +181,8 @@ export default class Annotator extends Component<
   /* Component Reference */
   private imagebarRef: any;
 
+  private chartRef: React.RefObject<Chart>;
+
   /* Annotation Operations Variables */
   public currentAsset: AssetAPIObject;
   /**
@@ -267,6 +270,8 @@ export default class Annotator extends Component<
     /* Image Bar Reference to Track Which Image is Selected */
     this.imagebarRef = React.createRef();
     this.backgroundImg = null;
+
+    this.chartRef = React.createRef();
 
     this.selectAsset = this.selectAsset.bind(this);
     this.showToaster = this.showToaster.bind(this);
@@ -812,6 +817,8 @@ export default class Annotator extends Component<
                 this.updateAnnotations(response.data.frames[key]);
               }
 
+              this.updateChart(response.data.frames);
+
               /**
                * Id to track the current handler number so that this handler
                * can be removed when selectAsset is called. more information
@@ -1328,6 +1335,12 @@ export default class Annotator extends Component<
     }
   }
 
+  private updateChart(data: any) {
+    if (this.chartRef.current !== null && this.chartRef.current !== undefined) {
+      this.chartRef.current.setChartData(this.state.confidence, data);
+    }
+  }
+
   /**
    * Set currently selected tag to target tag using respective hash
    * - Used to select annotation tag and update menu bar from external
@@ -1582,6 +1595,10 @@ export default class Annotator extends Component<
                 assetList={visibleAssets}
                 callbacks={{ selectAssetCallback: this.selectAsset }}
                 {...this.props}
+              />
+              <Chart 
+                ref={this.chartRef}
+                projectTags={this.state.tagInfo.tags}
               />
             </Card>
           </div>
